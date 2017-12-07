@@ -10,6 +10,11 @@ Then /^I login under admin$/ do
   $ui.wait_for_title('My Store')
 end
 
+Then /^I open site$/ do
+  $ui.go_to_url 'http://litecart.stqa.ru/index.php/en/'
+  $ui.wait_for_title('Online Store | My Store')
+end
+
 Then /^I click on each menu and verify existing "(.+)" tag$/ do |tag|
   menu = $ui.find_element(:id, 'box-apps-menu')
   menus = $ui.find_elements(menu, tag_name: 'li')
@@ -32,20 +37,18 @@ Then /^I click on each menu and verify existing "(.+)" tag$/ do |tag|
     if result
       puts 'Success! Page has H1 tag.'
     else
-      raise "ERROR: H1 does not exists for #{menu_item.text}!"
+      raise "ERROR: H1 does not exist for #{menu_item.text}!"
     end
 
   end
 end
 
-# Then /^$/ do ||
-#
-# end
-#
-# Then /^$/ do ||
-#
-# end
-#
-# Then /^$/ do ||
-#
-# end
+Then /^I verify all stickers on opened page$/ do
+  page = $ui.find_element(:id, 'page')
+  images = $ui.find_elements(page, class: 'image-wrapper')
+  images.each do |el|
+    result = $ui.find_elements(el, class: 'sticker').length
+    raise "Image #{el.attribute('title')} does not have sticker!" if result == 0
+    raise "Image #{el.attribute('title')} has more stickers than 1!" if result > 1
+  end
+end
