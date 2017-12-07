@@ -2,8 +2,6 @@ require 'rspec'
 require 'selenium-webdriver'
 require 'pp'
 
-$browser = 'firefox'
-
 describe 'Login to admin' do
   before(:each) do
     @driver = Selenium::WebDriver.for :firefox

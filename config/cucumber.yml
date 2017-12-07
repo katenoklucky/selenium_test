@@ -1,0 +1,2 @@
+<% common = "--format pretty -r features/support/env.rb -r features/step_definitions" %>
+UI: <%= common %> -r features BROWSER=firefox --guess
