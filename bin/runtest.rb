@@ -11,7 +11,6 @@ require 'fileutils'
 
 $opts = Trollop.options do
   version 'Version: Runtest 1.0'
-  opt :browser, 'Select the browser, can be firefox, chrome', default: 'firefox', type: String
   opt :pretty, 'Prints the feature as is - in colours.', default: true, short: 'n'
   opt :html, 'Generates a nice looking HTML report.', default: false, short: 'h'
   opt :json, 'Generates a JSON report.'
@@ -54,20 +53,6 @@ cl += ' --color'
 cl += ' --guess'
 cl += ' --expand' if $opts[:expand]
 cl += ' --format pretty' if $opts[:pretty]
-cl += " PROJECT=#{$opts[:project]}"
-cl += " BROWSER=#{$opts[:browser]}"
-cl += " LANGUAGE=#{$opts[:language]}" if $opts[:language]
-cl += " VIDEO=#{$opts[:video]}" if $opts[:video]
-cl += " WEBDRIVER=#{$opts[:driver]}"
-cl += " TS=#{$opts[:testpath]}" if $opts[:testpath]
-cl += " CONFIG=#{$opts[:config]}" if $opts[:config]
-cl += " ENV=#{$opts[:env]}"
-cl += " DEVICES=#{$opts[:devices]}"
-cl += " DATA=#{$opts[:data]}" if $opts[:data]
-cl += " TEST_ID=#{$opts[:testid]}" if $opts[:testid]
-cl += " ESX=#{$opts[:esx_hosts]}" if $opts[:esx_hosts]
-cl += " VCENTER=#{$opts[:vcenters]}" if $opts[:vcenters]
-cl += " BROWSER=#{$opts[:browser]}" if $opts[:browser]
 cl += " --format junit --out \"#{report_junit}\"" if $opts[:junit]
 cl += " --format html --out \"#{report_name}\"" if $opts[:html]
 cl += " --format json --out \"#{report_json}\"" if $opts[:json]

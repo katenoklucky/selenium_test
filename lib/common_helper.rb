@@ -1,5 +1,6 @@
 class UICommon
-  def initialize
+  def set_profile(browser)
+    $browser = browser
     @browser = {
         firefox: Selenium::WebDriver::Firefox::Profile.new,
         chrome: Selenium::WebDriver::Chrome::Profile.new,
@@ -10,17 +11,10 @@ class UICommon
     }
     @profile = @browser[$browser.to_sym]
     @option = @options[$browser.to_sym]
-    @profile['browser.download.manager.showWhenStarting'] = false
-    @profile['browser.helperApps.neverAsk.saveToDisk'] = 'application/octet-stream'
-  end
-
-  def set_profile
-    @option.profile = @profile
     @driver = Selenium::WebDriver.for $browser.to_sym, :options => @option
   end
 
   def go_to_url(url)
-    set_profile
     @driver.get(url)
     @driver.manage.timeouts.implicit_wait = $implicit_wait_time
   end
