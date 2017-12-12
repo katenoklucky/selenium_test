@@ -19,24 +19,24 @@ class UICommon
     @driver.manage.timeouts.implicit_wait = $implicit_wait_time
   end
 
-  def find_element(selector, value)
+  def find_element(finder, selector)
     @driver.manage.timeouts.implicit_wait = 3
     res_element = nil
     begin
-      res_element = @driver.find_element(selector, value) unless res_element
+      res_element = @driver.find_element(finder, selector) unless res_element
       @driver.action.move_to(res_element).perform
     rescue Selenium::WebDriver::Error::MoveTargetOutOfBoundsError
       @driver.action.send_keys :page_down
-      res_element = @driver.find_element(selector, value)
+      res_element = @driver.find_element(finder, selector)
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       10.times do |try|
         puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try #{try+1} of 10..."
-        res_element = @driver.find_element(selector, value)
+        res_element = @driver.find_element(finder, selector)
         break if res_element
       end
     rescue Selenium::WebDriver::Error::NoSuchElementError, Selenium::WebDriver::Error::InvalidSelectorError
     rescue Selenium::WebDriver::Error::TimeOutError
-      raise "Element '#{element}' does not found by timeout!"
+      raise "Element '#{res_element}' does not found by timeout!"
     end
     @driver.manage.timeouts.implicit_wait = $implicit_wait_time
     res_element
@@ -69,59 +69,59 @@ class UICommon
     element.send_keys text
   end
 
-  def element_exist?(selector, value)
+  def element_exist?(finder, selector)
     begin
-      el = find_element(selector, value)
+      el = find_element(finder, selector)
       !el.nil?
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      element_exist?(selector, value)
+      element_exist?(finder, selector)
     end
   end
 
-  def is_element_displayed?(selector, value)
+  def is_element_displayed?(finder, selector)
     begin
-      el = find_element(selector, value)
+      el = find_element(finder, selector)
       el.displayed? if el
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      is_element_displayed?(selector, value)
+      is_element_displayed?(finder, selector)
     end
   end
 
-  def is_element_enabled?(selector, value)
+  def is_element_enabled?(finder, selector)
     begin
-      el = find_element(selector, value)
+      el = find_element(finder, selector)
       el.enabled?
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      is_element_enabled?(selector, value)
+      is_element_enabled?(finder, selector)
     end
   end
 
-  def wait_for_element_exists(selector, value)
+  def wait_for_element_exists(finder, selector)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { element_exist?(selector, value) }
+    wait.until { element_exist?(finder, selector) }
   end
 
-  def wait_for_element_does_not_exist(selector, value)
+  def wait_for_element_does_not_exist(finder, selector)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { !element_exist?(selector, value) }
+    wait.until { !element_exist?(finder, selector) }
   end
 
-  def wait_for_element_is_not_visible(selector, value)
+  def wait_for_element_is_not_visible(finder, selector)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { !is_element_displayed?(selector, value) }
+    wait.until { !is_element_displayed?(finder, selector) }
   end
 
-  def wait_for_element_displayed(selector, value)
+  def wait_for_element_displayed(finder, selector)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { is_element_displayed?(selector, value) }
+    wait.until { is_element_displayed?(finder, selector) }
   end
 
-  def wait_for_element_enabled(selector, value)
+  def wait_for_element_enabled(finder, selector)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { is_element_enabled?(selector, value) }
+    wait.until { is_element_enabled?(finder, selector) }
   end
 
   def wait_for_title(title)
@@ -133,4 +133,64 @@ class UICommon
     @driver.quit
   end
 
+  def fill_field(finder, selector, value)
+    element = find_element(finder, selector)
+    if is_element_enabled?(finder, selector)
+      if element.tag_name == 'select'
+        wait_drop_down(element)
+        options = element.find_elements(tag_name: 'option')
+        options.each { |option| option.click if option.text.downcase == value.downcase }
+      elsif element.attribute('role') == 'listbox'
+        result = false
+        wait_listbox(element)
+        list = element.find_elements(tag_name: 'li')
+        list.each_with_index do |li, index|
+          actual_value = li.text.downcase
+          expected_value = value.downcase
+          if actual_value == expected_value
+            li_element = "#{selector} > li:nth-child(#{index + 1}) > a"
+            scroll_into_view(li_element)
+            sleep 3
+            puts "Selected #{actual_value} value"
+            find_element(:css, li_element).click
+            result = true
+            break
+          end
+        end
+        raise "Cannot find #{value} in list for element #{element}!" unless result
+      else
+        element.send_keys value
+      end
+    else
+      raise "Element '#{selector}' is not visible!"
+    end
+  end
+
+  def check_uncheck_element(mode, checkbox, checkbox_button)
+    act_result = checkbox.attribute('checked')
+    mode == 'check' ? exp_result = 'true' : exp_result = nil
+    checkbox_button.click unless exp_result == act_result
+  end
+
+  def wait_drop_down(element)
+    wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time)
+    wait.until { true if element.all(:css, 'option').size > 0 }
+    element
+  end
+
+  def wait_listbox(element)
+    wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time)
+    wait.until { true if element.all(:css, 'li').size > 0 }
+    element
+  end
+
+  def scroll_into_view(element)
+    script = "$(\"#{element}\").get(0).scrollIntoView();"
+    execute_script(script)
+  end
+
+  def execute_script(script)
+    @driver.execute_script(script)
+  end
+  
 end

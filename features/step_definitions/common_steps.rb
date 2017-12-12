@@ -329,3 +329,64 @@ end
 Then /^I use "(.+)" browser$/ do |browser|
   $ui.set_profile(browser)
 end
+
+Then /^I create new account with following settings:$/ do |table|
+  $ui.find_element(:css, '#box-account-login a').click
+  settings = table.hashes
+  settings.each do |setting|
+    value = setting[:value]
+    element = nil
+    case setting[:setting]
+      when 'tax_id'
+        element = '#create-account input[name="tax_id"]'
+      when 'company'
+        element = '#create-account input[name="company"]'
+      when 'first_name'
+        element = '#create-account input[name="firstname"]'
+      when 'last_name'
+        element = '#create-account input[name="lastname"]'
+      when 'address1'
+        element = '#create-account input[name="address1"]'
+      when 'address2'
+        element = '#create-account input[name="address2"]'
+      when 'postcode'
+        element = '#create-account input[name="postcode"]'
+      when 'city'
+        element = '#create-account input[name="city"]'
+      when 'country'
+        element = '#create-account select[name="country_code"]'
+      when 'zone'
+        element = '#create-account select[name="zone_code"]'
+      when 'email'
+        element = '#create-account input[name="email"]'
+      when 'phone'
+        element = '#create-account input[name="phone"]'
+      when 'desired_password'
+        element = '#create-account input[name="password"]'
+      when 'confirm_password'
+        element = '#create-account input[name="confirmed_password"]'
+    end
+    $ui.fill_field(:css, element, value)
+  end
+  $ui.find_element(:css, '#create-account button[name="create_account"]').click
+end
+
+Then /^I logout from the site$/ do
+  $ui.find_element(:css, '#box-account > div > ul > li:nth-child(4) > a').click
+end
+
+Then /^I login on the site with following settings:$/ do |table|
+  settings = table.hashes
+  settings.each do |setting|
+    value = setting[:value]
+    element = nil
+    case setting[:setting]
+      when 'email'
+        element = '#box-account-login input[name="email"]'
+      when 'password'
+        element = '#box-account-login input[name="password"]'
+    end
+    $ui.fill_field(:css, element, value)
+  end
+  $ui.find_element(:css, '#box-account-login button[name="login"]').click
+end
