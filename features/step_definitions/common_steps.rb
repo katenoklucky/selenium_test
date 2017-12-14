@@ -5,7 +5,7 @@ end
 Then /^I login under admin on site "(.+)" with title "(.+)"$/ do |url, title|
   $ui.go_to_url url
   $ui.find_element(:name, 'username').send_keys 'admin'
-  $ui.find_element(:name, 'password').send_keys 'admin'
+  $ui.find_element(:name, 'password').send_keys '0b7dba1c77df25bf0'
   $ui.find_element(:name, 'login').click
   $ui.wait_for_title(title)
 end
@@ -389,4 +389,146 @@ Then /^I login on the site with following settings:$/ do |table|
     $ui.fill_field(:css, element, value)
   end
   $ui.find_element(:css, '#box-account-login button[name="login"]').click
+end
+
+Then /^I navigate to "(.+)" menu item on the site$/ do |menu|
+  menu_box = $ui.find_element(:css, '#box-apps-menu-wrapper')
+  $ui.find_elements(menu_box, class: 'name').select {|el| el.text == menu}.first.click
+end
+
+Then /^I click on "(.+)"$/ do |button_name|
+  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'a').select {|el| el.text == button_name}.first.click
+end
+
+Then /^I fill "(.+)" tab with the following settings:$/ do |tab_name, table|
+  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'a').select {|el| el.text == tab_name}.first.click
+  settings = table.hashes
+  settings.each do |setting|
+    value = setting[:value]
+    case setting[:setting]
+      when 'status'
+        value == 'enabled' ? element = '#tab-general label:nth-child(3)' : element = '#tab-general label:nth-child(4)'
+        $ui.find_element(:css, element).click
+      when 'name'
+        element = '#tab-general input[name="name[en]"]'
+        $ui.fill_field(:css, element, value)
+      when 'code'
+        element = '#tab-general input[name="code"]'
+        $ui.fill_field(:css, element, value)
+      when 'categories'
+        elements = []
+        expected_values = value.split(',')
+        expected_values.each do |expected_value|
+          table = $ui.find_element(:css, '#tab-general table tr:nth-child(4) table')
+          elements.push($ui.find_elements(table, tag_name: 'input').select {|el| el.attribute('data-name') == expected_value}.first)
+          elements.each do |el|
+            $ui.fill_field(el, 'check')
+          end
+        end
+      when 'default_category'
+        element = '#tab-general select[name="default_category_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'product_groups'
+        res_value = nil
+        elements = []
+        expected_values = value.split(',')
+        expected_values.each do |expected_value|
+          case expected_value
+            when 'Female'
+              res_value = '1-2'
+            when 'Male'
+              res_value = '1-1'
+            when 'Unisex'
+              res_value = '1-3'
+          end
+          table = $ui.find_element(:css, '#tab-general table tr:nth-child(7) table')
+          elements.push($ui.find_elements(table, tag_name: 'input').select {|el| el.attribute('value') == res_value}.first)
+          elements.each do |el|
+            $ui.fill_field(el, 'check')
+          end
+        end
+      when 'quantity'
+        element = '#tab-general input[name="quantity"]'
+        $ui.fill_field(:css, element, value)
+      when 'quantity_unit'
+        element = '#tab-general select[name="quantity_unit_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'delivery_status'
+        element = '#tab-general select[name="delivery_status_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'sold_out_status'
+        element = '#tab-general select[name="sold_out_status_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'image_path'
+        file_name = "#{File.absolute_path('images')}/#{value}"
+        element = '#tab-general input[name="new_images[]"]'
+        $ui.fill_field(:css, element, file_name)
+      when 'date_valid_from'
+        element = '#tab-general input[name="date_valid_from"]'
+        $ui.fill_field(:css, element, value)
+      when 'date_valid_to'
+        element = '#tab-general input[name="date_valid_to"]'
+        $ui.fill_field(:css, element, value)
+      when 'manufacturer'
+        element = '#tab-information select[name="manufacturer_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'supplier'
+        element = '#tab-information select[name="supplier_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'keywords'
+        element = '#tab-information input[name="keywords"]'
+        $ui.fill_field(:css, element, value)
+      when 'short_description'
+        element = '#tab-information input[name="short_description[en]"]'
+        $ui.fill_field(:css, element, value)
+      when 'description'
+        element = '#tab-information textarea[name="description[en]"]'
+        $ui.fill_field(:css, element, value)
+      when 'head_title'
+        element = '#tab-information input[name="head_title[en]"]'
+        $ui.fill_field(:css, element, value)
+      when 'meta_description'
+        element = '#tab-information input[name="meta_description[en]"]'
+        $ui.fill_field(:css, element, value)
+      when 'price'
+        element = '#tab-prices input[name="purchase_price"]'
+        $ui.fill_field(:css, element, value)
+      when 'price_currency_code'
+        element = '#tab-prices select[name="purchase_price_currency_code"]'
+        $ui.fill_field(:css, element, value)
+      when 'tax_class_id'
+        element = '#table-prices select[name="tax_class_id"]'
+        $ui.fill_field(:css, element, value)
+      when 'gross_prices_usd'
+        element = '#tab-prices input[name="gross_prices[USD]"]'
+        $ui.fill_field(:css, element, value)
+      when 'gross_prices_eur'
+        element = '#tab-prices input[name="gross_prices[EUR]"]'
+        $ui.fill_field(:css, element, value)
+    end
+  end
+
+end
+
+Then /^I click on "(.+)" button$/ do |button_name|
+  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'button').select {|el| el.text == button_name}.first.click
+end
+
+Then /^I verify "(.+)" items exists in catalog by path:$/ do |item_name, table|
+  table.raw.each do |item_path|
+    path = item_path[0].split('/')
+    path.each do |folder_name|
+      table = $ui.find_element(:css, '#content .dataTable')
+      $ui.find_elements(table, tag_name: 'a').select {|el| el.text == folder_name}.first.click
+    end
+    result = nil
+    table = $ui.find_element(:css, '#content .dataTable')
+    elements = $ui.find_elements(table, tag_name: 'a')
+    elements.each do |el|
+      el.text == item_name
+      result = true
+      break
+    end
+    raise "Cannot find #{item_name} by path '#{item_path}'!" unless result
+  end
 end

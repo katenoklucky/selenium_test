@@ -133,13 +133,22 @@ class UICommon
     @driver.quit
   end
 
-  def fill_field(finder, selector, value)
-    element = find_element(finder, selector)
-    if is_element_enabled?(finder, selector)
+  def fill_field(finder=nil, selector, value)
+    if selector.class == Selenium::WebDriver::Element
+      element = selector
+    else
+      element = find_element(finder, selector)
+    end
+    if element.enabled?
       if element.tag_name == 'select'
         wait_drop_down(element)
         options = element.find_elements(tag_name: 'option')
-        options.each { |option| option.click if option.text.downcase == value.downcase }
+        options.each do |option|
+          if option.text == value
+            option.click unless option.attribute('selected')
+            break
+          end
+        end
       elsif element.attribute('role') == 'listbox'
         result = false
         wait_listbox(element)
@@ -158,6 +167,13 @@ class UICommon
           end
         end
         raise "Cannot find #{value} in list for element #{element}!" unless result
+      elsif element.attribute('type') == 'checkbox'
+        if value == 'check'
+          element.click unless element.selected?
+        else
+          element.clear if element.selected?
+        end
+
       else
         element.send_keys value
       end
