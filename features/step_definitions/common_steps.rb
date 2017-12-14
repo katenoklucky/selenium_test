@@ -358,6 +358,8 @@ Then /^I create new account with following settings:$/ do |table|
       when 'zone'
         element = '#create-account select[name="zone_code"]'
       when 'email'
+        @random_value = generate_random_value(5)
+        value.gsub!('(generated_id)', @random_value)
         element = '#create-account input[name="email"]'
       when 'phone'
         element = '#create-account input[name="phone"]'
@@ -379,6 +381,7 @@ Then /^I login on the site with following settings:$/ do |table|
   settings = table.hashes
   settings.each do |setting|
     value = setting[:value]
+    value.gsub!('(generated_id)', @random_value)
     element = nil
     case setting[:setting]
       when 'email'

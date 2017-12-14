@@ -208,5 +208,9 @@ class UICommon
   def execute_script(script)
     @driver.execute_script(script)
   end
+
+  def get_element_style(element, style)
+    element.style(style)
+  end
   
 end

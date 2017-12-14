@@ -10,6 +10,8 @@ def descending? (array)
   result
 end
 
-def get_element_style(element, style)
-  element.style(style)
+def generate_random_value(count_symbols)
+  random_value = ''
+  count_symbols.times{ random_value << ((rand(2)==1?65:97) + rand(25)).chr }
+  random_value
 end
