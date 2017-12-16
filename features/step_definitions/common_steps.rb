@@ -251,6 +251,11 @@ Then /^I navigate to "Yellow Duck" item/ do
   el.click
 end
 
+Then /^I navigate to the first item/ do
+  el = $ui.find_element(:css, '#box-most-popular li:nth-child(1) > a.link')
+  el.click
+end
+
 Then /^I verify settings for the item are equal on pages:$/ do |table|
   settings = table.raw
   settings.map do |el|
@@ -400,11 +405,11 @@ Then /^I navigate to "(.+)" menu item on the site$/ do |menu|
 end
 
 Then /^I click on "(.+)"$/ do |button_name|
-  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'a').select {|el| el.text == button_name}.first.click
+  $ui.find_elements($ui.find_element(:css, 'html'), tag_name: 'a').select {|el| el.text == button_name}.first.click
 end
 
 Then /^I fill "(.+)" tab with the following settings:$/ do |tab_name, table|
-  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'a').select {|el| el.text == tab_name}.first.click
+  $ui.find_elements($ui.find_element(:css, 'html'), tag_name: 'a').select {|el| el.text == tab_name}.first.click
   settings = table.hashes
   settings.each do |setting|
     value = setting[:value]
@@ -514,7 +519,12 @@ Then /^I fill "(.+)" tab with the following settings:$/ do |tab_name, table|
 end
 
 Then /^I click on "(.+)" button$/ do |button_name|
-  $ui.find_elements($ui.find_element(:css, '#content'), tag_name: 'button').select {|el| el.text == button_name}.first.click
+  $ui.find_elements($ui.find_element(:css, 'html'), tag_name: 'button').select {|el| el.text == button_name}.first.click
+  select_box = '#box-product select[name="options[Size]"]'
+  res = $ui.element_exist?(:css, select_box)
+  if res
+    $ui.fill_field(:css, select_box, 'Small')
+  end
 end
 
 Then /^I verify "(.+)" items exists in catalog by path:$/ do |item_name, table|
@@ -533,5 +543,26 @@ Then /^I verify "(.+)" items exists in catalog by path:$/ do |item_name, table|
       break
     end
     raise "Cannot find #{item_name} by path '#{item_path}'!" unless result
+  end
+end
+
+Then /^I get count of cart/ do
+  @items_in_cart = $ui.find_element(:css, '#cart span.quantity').text.to_i
+end
+
+Then /^I wait until count of cart was updated/ do
+  item_count_before = @items_in_cart
+  $ui.wait_for do
+    actual_item_count = $ui.find_element(:css, '#cart span.quantity').text.to_i
+    item_count_before != actual_item_count
+  end
+end
+
+Then /^I delete all items from cart$/ do
+  $ui.wait_for do
+    $ui.find_elements($ui.find_element(:css, 'html'), tag_name: 'button').select {|el| el.text == 'Remove'}.first.click
+    summary_wrapper = $ui.find_element(:css, '#checkout-summary-wrapper')
+    $ui.wait_for_element_not_exist(summary_wrapper)
+    $ui.is_element_displayed?(:css, '#checkout-cart-wrapper em')
   end
 end

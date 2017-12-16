@@ -124,6 +124,11 @@ class UICommon
     wait.until { is_element_enabled?(finder, selector) }
   end
 
+  def wait_for_element_not_exist(element)
+    wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
+    wait.until { !element.nil? }
+  end
+
   def wait_for_title(title)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
     wait.until { @driver.title == title }
@@ -212,5 +217,17 @@ class UICommon
   def get_element_style(element, style)
     element.style(style)
   end
-  
+
+  def wait_for(timeout = $implicit_wait_time, interval = 2, &_block)
+    duration = 0
+    start = Time.now
+    loop do
+      break if yield
+      if duration > timeout
+        raise TimeoutError, "The specified wait_for timeout (#{timeout} seconds) was exceeded!"
+      end
+      sleep(interval)
+      duration = Time.now - start
+    end
+  end
 end
