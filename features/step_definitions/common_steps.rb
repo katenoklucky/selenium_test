@@ -566,3 +566,28 @@ Then /^I delete all items from cart$/ do
     $ui.is_element_displayed?(:css, '#checkout-cart-wrapper em')
   end
 end
+
+Then /^I click on Edit for "(.+)" country$/ do |country_name|
+  table = $ui.find_element(:css, 'table')
+  country_trs_count = $ui.find_elements(table, css: 'tr').length
+  (2..country_trs_count-2).each do |tr_num|
+    name = $ui.find_element(:css, "tr:nth-child(#{tr_num}) > td:nth-child(5) > a").text
+    if name == country_name
+      $ui.find_element(:css, "tr:nth-child(#{tr_num}) > td:nth-child(7) > a").click
+      break
+    end
+  end
+end
+
+Then /^I open all windows$/ do
+  links = $ui.find_elements($ui.find_element(:css, 'html'), css: '.fa-external-link')
+  links.each do |link|
+    $ui.remember_window
+    link.click
+    $ui.go_to_new_window
+    $ui.wait_for_title_exist
+    puts "Opened page with title '#{$ui.get_title}'"
+    $ui.close_window
+    $ui.return_to_window
+  end
+end

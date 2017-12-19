@@ -131,11 +131,20 @@ class UICommon
 
   def wait_for_title(title)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { @driver.title == title }
+    wait.until { get_title == title }
+  end
+
+  def wait_for_title_exist
+    wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
+    wait.until { get_title != ''}
+  end
+
+  def get_title
+    @driver.title
   end
 
   def close_browser
-    @driver.quit
+    @driver.close
   end
 
   def fill_field(finder=nil, selector, value)
@@ -228,6 +237,28 @@ class UICommon
       end
       sleep(interval)
       duration = Time.now - start
+    end
+  end
+
+  def remember_window
+    @window = @driver.window_handle
+  end
+
+  def return_to_window
+    @driver.switch_to.window(@window)
+  end
+
+  def close_window
+    @driver.close
+  end
+
+  def go_to_new_window
+    windows = @driver.window_handles
+    windows.each do |window|
+      if @window != window
+        @driver.switch_to.window(window)
+        break
+      end
     end
   end
 end
