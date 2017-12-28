@@ -11,6 +11,7 @@ class UICommon
     }
     @profile = @browser[$browser.to_sym]
     @option = @options[$browser.to_sym]
+    # @driver = Selenium::WebDriver.for $browser.to_sym, :options => @option, :listener => MyListener.new(Logger.new(STDOUT))
     @driver = Selenium::WebDriver.for $browser.to_sym, :options => @option
   end
 
@@ -260,5 +261,9 @@ class UICommon
         break
       end
     end
+  end
+
+  def get_browser_logs
+    @driver.manage.logs.get :browser
   end
 end

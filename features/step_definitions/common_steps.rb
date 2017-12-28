@@ -591,3 +591,62 @@ Then /^I open all windows$/ do
     $ui.return_to_window
   end
 end
+
+Then /^I open each folder$/ do
+  table = $ui.find_element(:css, '#content .dataTable')
+  items_count = $ui.find_elements(table, tag_name: 'td').length
+  (0..items_count).each do |i|
+    table = $ui.find_element(:css, '#content .dataTable')
+    item = $ui.find_elements(table, tag_name: 'td')[i]
+    fa_length = $ui.find_elements(item, class: 'fa-folder').length
+    if fa_length > 0
+      a_length = $ui.find_elements(item, tag_name: 'a').length
+      if a_length > 0
+        text = $ui.find_elements(item, tag_name: 'a').first.text
+        $ui.find_elements(item, tag_name: 'a').first.click
+        puts "Clicked on #{text}"
+      end
+    end
+  end
+end
+
+Then /^I open each item and verify logs$/ do
+  result = []
+  table = $ui.find_element(:css, '#content .dataTable')
+  items_count = $ui.find_elements(table, tag_name: 'td').length
+  (0..items_count).each do |i|
+    table = $ui.find_element(:css, '#content .dataTable')
+    item = $ui.find_elements(table, tag_name: 'td')[i]
+    if item
+      img_length = $ui.find_elements(item, tag_name: 'img').length
+      if img_length > 0
+        a_length = $ui.find_elements(item, tag_name: 'a').length
+        if a_length > 0
+          page_name = $ui.find_elements(item, tag_name: 'a').first.text
+          $ui.find_elements(item, tag_name: 'a').first.click
+          puts "Opened item: #{page_name}"
+          logs = $ui.get_browser_logs
+          if logs.length > 0
+            hash = {}
+            hash[page_name] = []
+            logs.each do |el|
+              hash[page_name] << el
+            end
+            result << hash
+          end
+          $ui.find_elements($ui.find_element(:css, 'body'), tag_name: 'button').select {|element| element.text == 'Cancel'}.first.click
+        end
+      end
+    end
+  end
+  if result.empty?
+    puts 'All pages do not have any errors'
+  else
+    result.each do |el|
+      el.each do |k, v|
+        puts "Page '#{k}' has errors:\n"
+        v.each { |element| puts element}
+      end
+    end
+  end
+end
