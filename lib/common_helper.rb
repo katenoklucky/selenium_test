@@ -20,7 +20,9 @@ class UICommon
     @driver.manage.timeouts.implicit_wait = $implicit_wait_time
   end
 
-  def find_element(finder, selector)
+  def find_element(hash_element)
+    finder = hash_element[:finder].to_sym
+    selector = hash_element[:selector]
     @driver.manage.timeouts.implicit_wait = 3
     res_element = nil
     begin
@@ -70,59 +72,59 @@ class UICommon
     element.send_keys text
   end
 
-  def element_exist?(finder, selector)
+  def element_exist?(hash_element)
     begin
-      el = find_element(finder, selector)
+      el = find_element(hash_element)
       !el.nil?
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      element_exist?(finder, selector)
+      element_exist?(hash_element)
     end
   end
 
-  def is_element_displayed?(finder, selector)
+  def is_element_displayed?(hash_element)
     begin
-      el = find_element(finder, selector)
+      el = find_element(hash_element)
       el.displayed? if el
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      is_element_displayed?(finder, selector)
+      is_element_displayed?(hash_element)
     end
   end
 
-  def is_element_enabled?(finder, selector)
+  def is_element_enabled?(hash_element)
     begin
-      el = find_element(finder, selector)
+      el = find_element(hash_element)
       el.enabled?
     rescue Selenium::WebDriver::Error::StaleElementReferenceError
       puts "Got StaleElementReferenceError error in '#{self.class.name}.#{__method__}', try again..."
-      is_element_enabled?(finder, selector)
+      is_element_enabled?(hash_element)
     end
   end
 
-  def wait_for_element_exists(finder, selector)
+  def wait_for_element_exists(hash_element)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { element_exist?(finder, selector) }
+    wait.until { element_exist?(hash_element) }
   end
 
-  def wait_for_element_does_not_exist(finder, selector)
+  def wait_for_element_does_not_exist(hash_element)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { !element_exist?(finder, selector) }
+    wait.until { !element_exist?(hash_element) }
   end
 
-  def wait_for_element_is_not_visible(finder, selector)
+  def wait_for_element_is_not_visible(hash_element)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { !is_element_displayed?(finder, selector) }
+    wait.until { !is_element_displayed?(hash_element) }
   end
 
-  def wait_for_element_displayed(finder, selector)
+  def wait_for_element_displayed(hash_element)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { is_element_displayed?(finder, selector) }
+    wait.until { is_element_displayed?(hash_element) }
   end
 
-  def wait_for_element_enabled(finder, selector)
+  def wait_for_element_enabled(hash_element)
     wait = Selenium::WebDriver::Wait.new(:timeout => $implicit_wait_time) # seconds
-    wait.until { is_element_enabled?(finder, selector) }
+    wait.until { is_element_enabled?(hash_element) }
   end
 
   def wait_for_element_not_exist(element)
@@ -148,11 +150,11 @@ class UICommon
     @driver.close
   end
 
-  def fill_field(finder=nil, selector, value)
-    if selector.class == Selenium::WebDriver::Element
-      element = selector
+  def fill_field(hash_element, value)
+    if hash_element.class == Selenium::WebDriver::Element
+      element = hash_element
     else
-      element = find_element(finder, selector)
+      element = find_element(hash_element)
     end
     if element.enabled?
       if element.tag_name == 'select'
@@ -172,11 +174,15 @@ class UICommon
           actual_value = li.text.downcase
           expected_value = value.downcase
           if actual_value == expected_value
-            li_element = "#{selector} > li:nth-child(#{index + 1}) > a"
+            li_element = "#{hash_element[:selector]} > li:nth-child(#{index + 1}) > a"
             scroll_into_view(li_element)
+            li_element_hash = {
+                finder: 'css',
+                selector: li_element
+            }
             sleep 3
             puts "Selected #{actual_value} value"
-            find_element(:css, li_element).click
+            find_element(li_element_hash).click
             result = true
             break
           end
@@ -193,7 +199,7 @@ class UICommon
         element.send_keys value
       end
     else
-      raise "Element '#{selector}' is not visible!"
+      raise "Element '#{hash_element[:selector]}' is not visible!"
     end
   end
 
